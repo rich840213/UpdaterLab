@@ -44,7 +44,7 @@ abstract public class HttpClient implements IHttpClientListener {
                 Response response = client.newCall(request).execute();
                 parseHtmlText(response);
 
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
