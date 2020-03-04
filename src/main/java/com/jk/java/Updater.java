@@ -13,20 +13,24 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Updater extends JFrame {
 
-    private JLabel[] jLabels = new JLabel[4];
+    private JLabel[] jLabels;
+    private String[] url = new String[]{"https://www.softwareok.com/?Download=Q-Dir",
+            "https://winscp.net/eng/download.php",
+            "https://www.2brightsparks.com/download-syncbackfree.html",
+            "https://notepad-plus-plus.org/downloads/",
+            "https://git-scm.com/downloads",
+            "https://potplayer.daum.net/"};
 
     public Updater() {
         super("更新狂人");
-        init();
-
-        String[] url = new String[]{"https://www.softwareok.com/?Download=Q-Dir",
-                "https://winscp.net/eng/download.php",
-                "https://www.2brightsparks.com/download-syncbackfree.html",
-                "https://notepad-plus-plus.org/downloads/"};
+        jLabels = new JLabel[url.length];
+        init(url.length);
 
         UpdaterHttp updaterHttp = new UpdaterHttp(url);
         updaterHttp.addDataListener(new IDataListener() {
@@ -63,8 +67,8 @@ public class Updater extends JFrame {
         } else { /* TODO: error handling */ }
     }
 
-    private void init() {
-        setLayout(new GridLayout(4, 1));
+    private void init(int rowsLen) {
+        setLayout(new GridLayout(rowsLen, 1));
         setSize(640, 480);
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -84,7 +88,7 @@ public class Updater extends JFrame {
 class UpdaterHttp {
 
     HttpClient httpClient;
-    private LinkedHashMap<String, LinkedHashMap<String, String>> appDatas = new LinkedHashMap<String, LinkedHashMap<String, String>>();
+    private LinkedHashMap<String, LinkedHashMap<String, String>> appDatas = new LinkedHashMap<>();
 
     UpdaterHttp(String[] url) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
@@ -93,7 +97,7 @@ class UpdaterHttp {
 
             public void parseHtmlText(Response response) {
                 try {
-                    LinkedHashMap<String, String> appData = new LinkedHashMap<String, String>();
+                    LinkedHashMap<String, String> appData = new LinkedHashMap<>();
 
                     String html = response.body().string();
                     Document doc = Jsoup.parse(html);
@@ -125,6 +129,20 @@ class UpdaterHttp {
                         appData.put("version", ver);
                         appData.put("link", "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v" + ver + "/npp." + ver + ".Installer.x64.exe");
                         appDatas.put(titles[2], appData);
+                    } else if (title.contains("Git")) {
+                        Elements ver = doc.select("#main > div.two-column > div.column-right > div > span.version");
+                        String verText = ver.text().trim();
+
+                        appData.put("version", verText);
+                        appData.put("link", "https://github.com/git-for-windows/git/releases/download/v" + verText + ".windows.1/Git-" + verText + "-64-bit.exe");
+                        appDatas.put(titles[0], appData);
+                    } else if (title.contains("Potplayer")) {
+                        Elements ver = doc.select("#vertical-horizontal-scrollbar-demo > div.viewport > div > div.update_version.fst > strong");
+                        String verText = ver.text().trim();
+
+                        appData.put("version", verText);
+                        appData.put("link", "https://t1.daumcdn.net/potplayer/PotPlayer/Version/Latest/PotPlayerSetup64.exe");
+                        appDatas.put(titles[1], appData);
                     }
 
                 } catch (Exception e) {

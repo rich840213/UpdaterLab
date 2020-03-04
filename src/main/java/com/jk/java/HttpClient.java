@@ -19,10 +19,6 @@ abstract public class HttpClient implements IHttpClientListener {
         rqBuilder();
     }
 
-//    public HttpClient() {
-//
-//    }
-
     private void rqBuilder() {
 
         for (String urlText : url) {
@@ -43,11 +39,7 @@ abstract public class HttpClient implements IHttpClientListener {
             try {
                 Response response = client.newCall(request).execute();
                 parseHtmlText(response);
-
-                Thread.sleep(500);
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
