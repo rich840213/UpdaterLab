@@ -25,7 +25,8 @@ public class Updater extends JFrame {
             "https://www.2brightsparks.com/download-syncbackfree.html",
             "https://notepad-plus-plus.org/downloads/",
             "https://git-scm.com/downloads",
-            "https://potplayer.daum.net/"};
+            "https://potplayer.daum.net/",
+            "http://www.wisecleaner.com/wise-folder-hider-free.html"};
 
     public Updater() {
         super("更新狂人");
@@ -143,6 +144,14 @@ class UpdaterHttp {
                         appData.put("version", verText);
                         appData.put("link", "https://t1.daumcdn.net/potplayer/PotPlayer/Version/Latest/PotPlayerSetup64.exe");
                         appDatas.put(titles[1], appData);
+                    } else if (title.contains("Wise Folder Hider")) {
+                        Elements link = doc.select("#free-download");
+                        Elements ver = doc.select("#banner-free > p");
+                        String verText = ver.text().trim().split(" ")[1];
+
+                        appData.put("version", verText);
+                        appData.put("link", link.attr("href"));
+                        appDatas.put("Wise Folder Hider", appData);
                     }
 
                 } catch (Exception e) {
