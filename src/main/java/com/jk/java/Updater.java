@@ -13,11 +13,12 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
-public class Updater extends JFrame {
+public class Updater extends JFrame implements IDataListener {
 
     private JLabel[] jLabels;
     private String[] url = new String[]{"https://www.softwareok.com/?Download=Q-Dir",
@@ -33,31 +34,31 @@ public class Updater extends JFrame {
         jLabels = new JLabel[url.length];
         init(url.length);
 
-        UpdaterHttp updaterHttp = new UpdaterHttp(url);
-        updaterHttp.addDataListener(new IDataListener() {
-            public void getAppDatas(final LinkedHashMap<String, LinkedHashMap<String, String>> datas) {
-                int index = 0;
-                Set set = datas.entrySet();
-                Iterator i = set.iterator();
+        UpdaterHttp updaterHttp = new UpdaterHttp(url, this);
+    }
 
-                while (i.hasNext()) {
-                    final Map.Entry map = (Map.Entry) i.next();
-                    jLabels[index].setText("   " + map.getKey().toString() + "          最新版本: " + datas.get(map.getKey()).get("version"));
-                    jLabels[index].addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            try {
-                                String u = datas.get(map.getKey()).get("link");
-                                open(new URI(u));
-                            } catch (URISyntaxException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    });
-                    index++;
+    @Override
+    public void getAppData(LinkedHashMap<String, LinkedHashMap<String, String>> datas) {
+        int index = 0;
+        Set set = datas.entrySet();
+        Iterator i = set.iterator();
+
+        while (i.hasNext()) {
+            final Map.Entry map = (Map.Entry) i.next();
+            jLabels[index].setText("   " + map.getKey().toString() + "          最新版本: " + datas.get(map.getKey()).get("version"));
+            jLabels[index].addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    try {
+                        String u = datas.get(map.getKey()).get("link");
+                        open(new URI(u));
+                    } catch (URISyntaxException ex) {
+                        ex.printStackTrace();
+                    }
                 }
-            }
-        });
+            });
+            index++;
+        }
     }
 
     private static void open(URI uri) {
@@ -91,10 +92,10 @@ class UpdaterHttp {
     HttpClient httpClient;
     private LinkedHashMap<String, LinkedHashMap<String, String>> appDatas = new LinkedHashMap<>();
 
-    UpdaterHttp(String[] url) {
+    UpdaterHttp(String[] url, IDataListener listener) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-        httpClient = new HttpClient(client, url) {
+        httpClient = new HttpClient(client, url, listener) {
 
             public void parseHtmlText(Response response) {
                 try {
@@ -154,15 +155,11 @@ class UpdaterHttp {
                         appDatas.put("Wise Folder Hider", appData);
                     }
 
+                    listener.getAppData(appDatas);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-
         };
-    }
-
-    public void addDataListener(IDataListener listener) {
-        listener.getAppDatas(appDatas);
     }
 }

@@ -2,7 +2,7 @@ package com.jk.java;
 
 import java.util.LinkedHashMap;
 
-public interface IDataListener  {
+public interface IDataListener {
 
-    void getAppDatas(LinkedHashMap<String, LinkedHashMap<String, String>> datas);
+    void getAppData(LinkedHashMap<String, LinkedHashMap<String, String>> datas);
 }

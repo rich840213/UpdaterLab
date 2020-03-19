@@ -11,7 +11,7 @@ abstract public class HttpClient implements IHttpClientListener {
     private OkHttpClient client;
     private String[] url;
 
-    public HttpClient(OkHttpClient client, String[] url) {
+    public HttpClient(OkHttpClient client, String[] url, IDataListener listener) {
 
         this.client = client;
         this.url = url;
