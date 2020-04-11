@@ -13,38 +13,38 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class Updater extends JFrame implements IDataListener {
 
-    private JLabel[] jLabels;
-    private String[] url = new String[]{"https://www.softwareok.com/?Download=Q-Dir",
-            "https://winscp.net/eng/download.php",
-            "https://www.2brightsparks.com/download-syncbackfree.html",
-            "https://notepad-plus-plus.org/downloads/",
-            "https://git-scm.com/downloads",
-            "https://potplayer.daum.net/",
-            "http://www.wisecleaner.com/wise-folder-hider-free.html"};
+    private final JLabel[] jLabels;
+    static String[] url;
 
     public Updater() {
         super("更新狂人");
+        url = new String[]{"https://www.softwareok.com/?seite=Freeware/Q-Dir",
+                "https://winscp.net/eng/download.php",
+                "https://www.2brightsparks.com/download-syncbackfree.html",
+                "https://notepad-plus-plus.org/downloads/",
+                "https://git-scm.com/downloads",
+                "https://potplayer.daum.net/",
+                "http://www.wisecleaner.com/wise-folder-hider-free.html"};
         jLabels = new JLabel[url.length];
         init(url.length);
 
-        UpdaterHttp updaterHttp = new UpdaterHttp(url, this);
+        new UpdaterHttp(url, this);
     }
 
     @Override
     public void getAppData(LinkedHashMap<String, LinkedHashMap<String, String>> datas) {
         int index = 0;
         Set set = datas.entrySet();
-        Iterator i = set.iterator();
 
-        while (i.hasNext()) {
-            final Map.Entry map = (Map.Entry) i.next();
+        for (Object o : set) {
+            final Map.Entry map = (Map.Entry) o;
             jLabels[index].setText("   " + map.getKey().toString() + "          最新版本: " + datas.get(map.getKey()).get("version"));
             jLabels[index].addMouseListener(new MouseAdapter() {
                 @Override
@@ -64,9 +64,10 @@ public class Updater extends JFrame implements IDataListener {
     private static void open(URI uri) {
         if (Desktop.isDesktopSupported()) {
             try {
+                System.out.println("open");
                 Desktop.getDesktop().browse(uri);
             } catch (IOException e) { /* TODO: error handling */ }
-        } else { /* TODO: error handling */ }
+        }
     }
 
     private void init(int rowsLen) {
@@ -94,6 +95,7 @@ class UpdaterHttp {
 
     UpdaterHttp(String[] url, IDataListener listener) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
+        int dataLen = url.length;
 
         httpClient = new HttpClient(client, url, listener) {
 
@@ -101,16 +103,14 @@ class UpdaterHttp {
                 try {
                     LinkedHashMap<String, String> appData = new LinkedHashMap<>();
 
-                    String html = response.body().string();
+                    String html = Objects.requireNonNull(response.body()).string();
                     Document doc = Jsoup.parse(html);
                     String title = doc.title();
                     String[] titles = title.split(" ");
 
                     if (title.contains("Q-Dir")) {
-                        Elements elements = doc.select("#XXXX > tbody > tr > td > table:nth-child(1) > tbody > tr:nth-child(5) > td > table > tbody > tr > td:nth-child(2) > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(4) > td:nth-child(1) > a");
-
                         appData.put("version", titles[1]);
-                        appData.put("link", elements.attr("href"));
+                        appData.put("link", "https://www.softwareok.com/Download/Q-Dir_Installer_x64.zip");
                         appDatas.put(titles[0], appData);
                     } else if (title.contains("WinSCP")) {
                         Elements link = doc.select("#pageDownload > main > section.gradient-bg-reverse.download-info > div > ul > li:nth-child(1) > a");
@@ -155,7 +155,7 @@ class UpdaterHttp {
                         appDatas.put("Wise Folder Hider", appData);
                     }
 
-                    listener.getAppData(appDatas);
+                    if (dataLen == appDatas.size()) listener.getAppData(appDatas);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
