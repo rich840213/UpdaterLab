@@ -7,12 +7,14 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -21,6 +23,7 @@ import java.util.Set;
 public class Updater extends JFrame implements IDataListener {
 
     private final JLabel[] jLabels;
+    private JProgressBar progressBar;
     static String[] url;
 
     public Updater() {
@@ -42,6 +45,13 @@ public class Updater extends JFrame implements IDataListener {
     public void getAppData(LinkedHashMap<String, LinkedHashMap<String, String>> datas) {
         int index = 0;
         Set set = datas.entrySet();
+
+        DecimalFormat df = new DecimalFormat("#");
+        double pc = datas.size() / ((float) url.length) * 100;
+        progressBar.setValue(Integer.parseInt(df.format(pc)));
+        if (datas.size() != url.length) return;
+        Border border = BorderFactory.createTitledBorder("Loading Complete");
+        progressBar.setBorder(border);
 
         for (Object o : set) {
             final Map.Entry map = (Map.Entry) o;
@@ -71,16 +81,24 @@ public class Updater extends JFrame implements IDataListener {
     }
 
     private void init(int rowsLen) {
-        setLayout(new GridLayout(rowsLen, 1));
-        setSize(640, 480);
-        setVisible(true);
+        setLayout(new GridLayout(rowsLen + 1, 1));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
+        Border border = BorderFactory.createTitledBorder("Loading...");
+        progressBar.setBorder(border);
+        add(progressBar);
+
         for (int i = 0; i < jLabels.length; i++) {
-            jLabels[i] = new JLabel(" 載入中...");
+            jLabels[i] = new JLabel();
             jLabels[i].setFont(new Font("Default", Font.BOLD, 24));
             add(jLabels[i]);
         }
+
+        setSize(640, 480);
+        setVisible(true);
     }
 
     public static void main(String[] args) {
@@ -91,11 +109,10 @@ public class Updater extends JFrame implements IDataListener {
 class UpdaterHttp {
 
     HttpClient httpClient;
-    private LinkedHashMap<String, LinkedHashMap<String, String>> appDatas = new LinkedHashMap<>();
+    private final LinkedHashMap<String, LinkedHashMap<String, String>> appDatas = new LinkedHashMap<>();
 
     UpdaterHttp(String[] url, IDataListener listener) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
-        int dataLen = url.length;
 
         httpClient = new HttpClient(client, url, listener) {
 
@@ -155,7 +172,7 @@ class UpdaterHttp {
                         appDatas.put("Wise Folder Hider", appData);
                     }
 
-                    if (dataLen == appDatas.size()) listener.getAppData(appDatas);
+                    listener.getAppData(appDatas);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

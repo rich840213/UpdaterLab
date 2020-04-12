@@ -8,8 +8,8 @@ import java.io.IOException;
 
 abstract public class HttpClient implements IHttpClientListener {
 
-    private OkHttpClient client;
-    private String[] url;
+    private final OkHttpClient client;
+    private final String[] url;
 
     public HttpClient(OkHttpClient client, String[] url, IDataListener listener) {
 
