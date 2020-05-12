@@ -16,9 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class Updater extends JFrame implements IDataListener {
 
@@ -43,24 +41,22 @@ public class Updater extends JFrame implements IDataListener {
 
     @Override
     public void getAppData(LinkedHashMap<String, LinkedHashMap<String, String>> datas) {
-        int index = 0;
-        Set set = datas.entrySet();
-
         DecimalFormat df = new DecimalFormat("#");
         double pc = datas.size() / ((float) url.length) * 100;
         progressBar.setValue(Integer.parseInt(df.format(pc)));
+        
         if (datas.size() != url.length) return;
         Border border = BorderFactory.createTitledBorder("Loading Complete");
         progressBar.setBorder(border);
 
-        for (Object o : set) {
-            final Map.Entry map = (Map.Entry) o;
-            jLabels[index].setText("   " + map.getKey().toString() + "          最新版本: " + datas.get(map.getKey()).get("version"));
+        int index = 0;
+        for (String key : datas.keySet()) {
+            jLabels[index].setText("   " + key + "          最新版本: " + datas.get(key).get("version"));
             jLabels[index].addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     try {
-                        String u = datas.get(map.getKey()).get("link");
+                        String u = datas.get(key).get("link");
                         open(new URI(u));
                     } catch (URISyntaxException ex) {
                         ex.printStackTrace();
@@ -136,7 +132,7 @@ class UpdaterHttp {
                         appData.put("link", "https://winscp.net/" + link.attr("href"));
                         appDatas.put(titles[0], appData);
                     } else if (title.contains("SyncBackFree")) {
-                        Elements ver = doc.select("#boxedWrapper > div.container > div:nth-child(2) > div > div.span7 > h3 > strong");
+                        Elements ver = doc.select("#boxedWrapper > div.container > div:nth-child(2) > div.span7 > h3 > strong");
 
                         appData.put("version", ver.text().split(" ")[2].substring(1));
                         appData.put("link", "https://www.2brightsparks.com/assets/software/SyncBack_Setup.exe");
