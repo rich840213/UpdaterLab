@@ -44,7 +44,7 @@ public class Updater extends JFrame implements IDataListener {
         DecimalFormat df = new DecimalFormat("#");
         double pc = datas.size() / ((float) url.length) * 100;
         progressBar.setValue(Integer.parseInt(df.format(pc)));
-        
+
         if (datas.size() != url.length) return;
         Border border = BorderFactory.createTitledBorder("Loading Complete");
         progressBar.setBorder(border);
@@ -132,9 +132,13 @@ class UpdaterHttp {
                         appData.put("link", "https://winscp.net/" + link.attr("href"));
                         appDatas.put(titles[0], appData);
                     } else if (title.contains("SyncBackFree")) {
-                        Elements ver = doc.select("#boxedWrapper > div.container > div:nth-child(2) > div.span7 > h3 > strong");
-
-                        appData.put("version", ver.text().split(" ")[2].substring(1));
+                        try {
+                            Elements ver = doc.select("#boxedWrapper > div.container > div:nth-child(2) > div.span7 > h3 > strong");
+                            appData.put("version", ver.text().split(" ")[2].substring(1));
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            Elements ver = doc.select("#boxedWrapper > div.container > div.row-fluid.hidden-phone > div.span7 > h3 > strong");
+                            appData.put("version", ver.text().split(" ")[2].substring(1));
+                        }
                         appData.put("link", "https://www.2brightsparks.com/assets/software/SyncBack_Setup.exe");
                         appDatas.put(titles[6], appData);
                     } else if (title.contains("Notepad++")) {
