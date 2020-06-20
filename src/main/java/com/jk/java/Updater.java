@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class Updater extends JFrame implements IDataListener {
@@ -32,7 +34,8 @@ public class Updater extends JFrame implements IDataListener {
                 "https://notepad-plus-plus.org/downloads/",
                 "https://git-scm.com/downloads",
                 "https://potplayer.daum.net/",
-                "http://www.wisecleaner.com/wise-folder-hider-free.html"};
+                "http://www.wisecleaner.com/wise-folder-hider-free.html",
+                "https://crystalmark.info/en/"};
         jLabels = new JLabel[url.length];
         init(url.length);
 
@@ -70,7 +73,7 @@ public class Updater extends JFrame implements IDataListener {
     private static void open(URI uri) {
         if (Desktop.isDesktopSupported()) {
             try {
-                System.out.println("open");
+//                System.out.println("open");
                 Desktop.getDesktop().browse(uri);
             } catch (IOException e) { /* TODO: error handling */ }
         }
@@ -170,6 +173,16 @@ class UpdaterHttp {
                         appData.put("version", verText);
                         appData.put("link", link.attr("href"));
                         appDatas.put("Wise Folder Hider", appData);
+                    } else if (title.contains("Crystal")) {
+                        Elements test = doc.select("#custom_html-12 > div > ul");
+                        for (String str : test.text().trim().split("!!")) {
+                            List<String> subList = Arrays.asList(str.trim().split(" "));
+                            if (checkCrystalDiskPackage(subList)) {
+                                appData.put("version", subList.get(2));
+                                appData.put("link", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller");
+                                appDatas.put("CrystalDiskInfo", appData);
+                            }
+                        }
                     }
 
                     listener.getAppData(appDatas);
@@ -178,5 +191,9 @@ class UpdaterHttp {
                 }
             }
         };
+    }
+
+    private boolean checkCrystalDiskPackage(List<String> list) {
+        return list.contains("CrystalDiskInfo") && list.contains("Release");
     }
 }
